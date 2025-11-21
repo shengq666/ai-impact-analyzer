@@ -1,7 +1,7 @@
 
 import http from "http";
 import { URL } from "url";
-import { runAnalysis } from "./analyzer-core";
+import { runAnalysis } from "../orchestration/analyzer";
 
 /**
  * GitLab Merge Request Webhook Payload 类型定义

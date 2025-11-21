@@ -1,15 +1,20 @@
+/**
+ * 编排层：主分析流程
+ * 协调各模块，实现完整的分析流程
+ */
 
-import { ensureArtifactsDir, writeReport } from "./report";
-import { getChangedFiles, getChangedFilesWithDetails } from "./diff";
-import { analyzeDependencies } from "./analyze";
-import { analyzeImpactWithLLM } from "./llm";
-import { computeConfidenceScore } from "./confidence";
+import { ensureArtifactsDir, writeReport } from "../output/report";
+import { getChangedFiles, getChangedFilesWithDetails } from "../analysis/diff";
+import { analyzeAST } from "../analysis/ast";
+import { analyzeDependencyGraph } from "../analysis/dependency";
+import { analyzeImpactWithLLM } from "../core/llm";
+import { computeConfidenceScore } from "../output/confidence";
 import simpleGit from "simple-git";
 import path from "path";
 import fs from "fs";
 
 /**
- * 核心分析逻辑（从 index.ts 提取，供 Webhook 和 CLI 共用）
+ * 核心分析逻辑（从 analyzer-core.ts 迁移）
  */
 export async function runAnalysis(options: {
   repoUrl?: string;
@@ -60,8 +65,13 @@ export async function runAnalysis(options: {
     console.log("Analyzing change details...");
     const changedDetails = await getChangedFilesWithDetails(base, head, { cwd: analysisCwd, allFiles, exts });
 
-    const { affected, dependencyGraph } = await analyzeDependencies(changed);
-    console.log("Preliminary affected metadata built.");
+    // AST 分析
+    const { affected } = await analyzeAST(changed);
+    console.log("AST analysis completed.");
+
+    // 依赖分析
+    const dependencyGraph = await analyzeDependencyGraph(analysisCwd || ".");
+    console.log("Dependency analysis completed.");
 
     const risk = (process.env.IMPACT_RISK as any) || 'balanced';
     const maxTests = process.env.IMPACT_MAX_TESTS ? Number(process.env.IMPACT_MAX_TESTS) : 8;
