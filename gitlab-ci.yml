@@ -1,0 +1,53 @@
+stages:
+  - analyze
+
+impact_analysis:
+  stage: analyze
+  image: node:18
+  variables:
+    ANALYZER_REPO: 'https://gitlab.com/your-org/ai-impact-analyzer.git' # 改成你的 Analyzer 仓库地址
+  before_script:
+    # 1. 克隆 Analyzer 并安装依赖
+    - git clone "$ANALYZER_REPO" /tmp/ai-impact-analyzer
+    - cd /tmp/ai-impact-analyzer
+    - npm ci
+  script:
+    # 2. 运行分析（对当前项目进行 diff）
+    - cd /tmp/ai-impact-analyzer
+    - export SOURCE_BRANCH="origin/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME:-$CI_COMMIT_REF_NAME}"
+    - export TARGET_BRANCH="origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-master}"
+    - npm run analyze -- --repo "$CI_PROJECT_URL" \
+      --base "$TARGET_BRANCH" \
+      --head "$SOURCE_BRANCH" \
+      --all-files
+    # 3. 把最新报告贴到 MR Discussion 中
+    - REPORT_PATH=$(ls artifacts/report-*.md | tail -n1)
+    - |
+      if [ -n "$CI_MERGE_REQUEST_IID" ]; then
+        echo "Posting report to MR #${CI_MERGE_REQUEST_IID}..."
+        COMMENT="## 🤖 AI 变更影响分析报告
+
+        <details>
+        <summary>点击查看详细分析报告</summary>
+
+        \`\`\`markdown
+        $(sed 's/\\/\\\\/g' "$REPORT_PATH")
+        \`\`\`
+
+        </details>"
+
+        curl --request POST \
+          --header "PRIVATE-TOKEN: ${GITLAB_API_TOKEN}" \
+          --header "Content-Type: application/json" \
+          --data "{\"body\": \"${COMMENT}\"}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/notes"
+      else
+        echo "Not an MR pipeline; skip posting to Discussion."
+      fi
+  artifacts:
+    when: always
+    paths:
+      - /tmp/ai-impact-analyzer/artifacts/
+    expire_in: 7 days
+  only:
+    - merge_requests

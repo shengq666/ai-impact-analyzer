@@ -1,0 +1,30 @@
+{
+  "name": "ai-impact-analyzer",
+  "version": "0.1.0",
+  "description": "MVP: AI-driven change impact analyzer for frontend projects (TypeScript, Node).",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "analyze": "ts-node src/index.ts",
+    "analyze:branches": "ts-node src/index.ts --base origin/master --head HEAD",
+    "webhook": "ts-node src/index.ts --webhook",
+    "start": "node dist/index.js",
+    "start:webhook": "node dist/index.js --webhook",
+    "lint": "eslint . --ext .ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "madge": "^5.0.0",
+    "openai": "^4.0.0",
+    "simple-git": "^3.0.0",
+    "ts-morph": "^17.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  }
+}
