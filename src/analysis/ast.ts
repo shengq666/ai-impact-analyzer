@@ -2,7 +2,6 @@
 import { Project, SyntaxKind, Node } from "ts-morph";
 import fs from "fs";
 import path from "path";
-import madge from "madge";
 
 /**
  * 从 Vue 文件中提取 <script> 部分的内容
@@ -111,12 +110,11 @@ function extractCodeEntities(sourceFile: any): {
 }
 
 /**
- * analyzeDependencies(files)
+ * analyzeAST(files)
  * - Build a small AST snapshot with ts-morph for changed files.
  * - Support Vue2/Vue3/React/Node.js (framework-agnostic)
- * - Run madge over src/ to build a module dependency object (lightweight).
  */
-export async function analyzeDependencies(files: string[]) {
+export async function analyzeAST(files: string[]) {
   let project: Project;
   if (fs.existsSync("tsconfig.json")) {
     project = new Project({
@@ -190,14 +188,5 @@ export async function analyzeDependencies(files: string[]) {
     });
   }
 
-  // Build dependency graph using madge (scans disk)
-  let dependencyGraph = {};
-  try {
-    const res = await madge("src", { baseDir: ".", includeNpm: false });
-    dependencyGraph = res.obj();
-  } catch (e) {
-    dependencyGraph = { error: "madge failed to analyze - ensure src/ exists" };
-  }
-
-  return { affected, dependencyGraph };
+  return { affected };
 }

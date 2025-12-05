@@ -3,6 +3,19 @@
 
 This repository contains a minimal MVP for an AI-assisted change impact analysis system for frontend projects.
 
+## 项目架构
+
+本项目采用分层架构设计，代码组织清晰，易于维护和扩展。详细架构说明请参考 [ARCHITECTURE.md](./ARCHITECTURE.md)。
+
+### 目录结构
+
+- `src/core/` - 核心 MVP 模块（LLM 调用、Prompt 构建、类型定义）
+- `src/analysis/` - 分析相关模块（Git diff、AST 分析、依赖分析）
+- `src/output/` - 输出相关模块（报告生成、置信度计算）
+- `src/orchestration/` - 编排层（主分析流程）
+- `src/entry/` - 入口层（CLI、Webhook）
+- `src/utils/` - 工具函数（配置加载）
+
 ## What it does
 - Extracts changed files (via `simple-git` or environment variables from CI)
 - Performs lightweight AST inspection using `ts-morph`

@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
-import { buildLLMMessages, StrictJSONShape } from './prompt'
+import { buildLLMMessages } from './prompt'
+import type { StrictJSONShape } from './types'
 
 /**
  * analyzeImpactWithLLM
